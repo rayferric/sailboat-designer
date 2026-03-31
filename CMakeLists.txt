@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.20)
 project(sailboat_designer VERSION 1.0.0 LANGUAGES CXX)
 
 # add third-party modules
-add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glad")
-add_subdirectory("vendor/stb")
+add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")
+add_subdirectory("vendor/imgui")
+add_subdirectory("vendor/stb")
 add_subdirectory("vendor/tinygltf")
 
 # define target
@@ -25,5 +26,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	"src"
 )
 target_link_libraries(${PROJECT_NAME}
-    glfw glad stb glm tinygltf
+    glad glfw glm imgui stb tinygltf
 )
