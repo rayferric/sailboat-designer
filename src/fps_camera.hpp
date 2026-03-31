@@ -11,10 +11,10 @@ public:
 
 	uint32_t width = 1;
 	uint32_t height = 1;
-	
+
 	glm::vec3 pos = glm::vec3(0.0f);
 	float pitch = 0; // degrees
-	float yaw = 0; // degrees
+	float yaw = 0;   // degrees
 
 	float movement_speed = 10.0f; // units per second
 	float movement_boost = 3.0f;

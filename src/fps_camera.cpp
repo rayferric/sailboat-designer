@@ -52,8 +52,10 @@ void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
 	last_mouse_y = static_cast<float>(mouse_y);
 
 	// smooth mouse delta
-	mouse_dx = mouse_dx * (1.0f - look_smoothing) + last_mouse_dx * look_smoothing;
-	mouse_dy = mouse_dy * (1.0f - look_smoothing) + last_mouse_dy * look_smoothing;
+	mouse_dx =
+	    mouse_dx * (1.0f - look_smoothing) + last_mouse_dx * look_smoothing;
+	mouse_dy =
+	    mouse_dy * (1.0f - look_smoothing) + last_mouse_dy * look_smoothing;
 	last_mouse_dx = mouse_dx;
 	last_mouse_dy = mouse_dy;
 
@@ -120,8 +122,8 @@ void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
 		move_offset = glm::vec3(rot * glm::vec4(move_offset, 0.0f));
 
 		// smooth move_offset
-		move_offset =
-		    move_offset * (1.0f - move_smoothing) + last_move_offset * move_smoothing;
+		move_offset = move_offset * (1.0f - move_smoothing) +
+		              last_move_offset * move_smoothing;
 		last_move_offset = move_offset;
 
 		pos += move_offset;

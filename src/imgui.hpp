@@ -5,13 +5,13 @@
 class imgui {
 public:
 	imgui(GLFWwindow *glfw_window);
-    ~imgui();
+	~imgui();
 
-    bool is_cursor_hovering_over() const;
+	bool is_cursor_hovering_over() const;
 
-    void begin();
+	void begin();
 
-    void end();
+	void end();
 
-    void draw();
+	void draw();
 };

@@ -24,14 +24,16 @@ void GLAPIENTRY opengl_error_callback(
     GLuint id,
     GLenum severity,
     GLsizei length,
-    const GLchar* message,
-    const void* userParam)
-{
-    // ignore non-significant codes
-    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-    
-    printf("OpenGL Debug Message (%d): %s\n", id, message);
-    printf("Source: %d, Type: %d, Severity: %d\n", source, type, severity);
+    const GLchar *message,
+    const void *userParam
+) {
+	// ignore non-significant codes
+	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) {
+		return;
+	}
+
+	printf("OpenGL Debug Message (%d): %s\n", id, message);
+	printf("Source: %d, Type: %d, Severity: %d\n", source, type, severity);
 }
 
 //////////
@@ -65,7 +67,9 @@ void window::open(uint32_t w, uint32_t h, const std::string &title) {
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(opengl_error_callback, nullptr);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageControl(
+	    GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE
+	);
 
 	// add this user ptr
 	glfwSetWindowUserPointer(glfw_window, this);

@@ -2,7 +2,7 @@
 
 static std::string load_text(const std::filesystem::path &path) {
 	std::ifstream f(path, std::ios::in | std::ios::binary);
-	const auto    sz = std::filesystem::file_size(path);
+	const auto sz = std::filesystem::file_size(path);
 
 	std::string str(sz, '\0');
 	f.read(str.data(), sz);
@@ -19,14 +19,15 @@ shader::~shader() {
 	glDeleteProgram(prog_id);
 }
 
-static void check_shader_compile(GLuint shader_id, const std::string &shader_name) {
+static void
+check_shader_compile(GLuint shader_id, const std::string &shader_name) {
 	GLint success;
 	glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		GLchar info[512];
 		glGetShaderInfoLog(shader_id, 512, NULL, info);
 		throw std::runtime_error(
-			shader_name + " compilation failed:\n" + std::string(info) + "\n"
+		    shader_name + " compilation failed:\n" + std::string(info) + "\n"
 		);
 	}
 }
@@ -38,7 +39,7 @@ static void check_program_link(GLuint prog_id) {
 		GLchar info[512];
 		glGetProgramInfoLog(prog_id, 512, NULL, info);
 		throw std::runtime_error(
-			"glLinkProgram failed:\n" + std::string(info) + "\n"
+		    "glLinkProgram failed:\n" + std::string(info) + "\n"
 		);
 	}
 }
