@@ -19,46 +19,65 @@ int main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	model sailboat;
-	sailboat.load_from_glb(
-	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/sailboat.glb"
+	model boat_base, boat_sail;
+	boat_base.load_from_glb(
+	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/kuba_boat_base.glb"
+	);
+	boat_sail.load_from_glb(
+	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/kuba_boat_sail.glb"
 	);
 	shader lit;
 	lit.compile_from_files(
 	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/lit.vert",
 	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/lit.frag"
 	);
+	uniform_buffer ubo_mvp;
+	uniform_buffer ubo_mat;
+
 	fps_camera cam;
-	cam.pos.z = 20.0f; // Move camera back so we can see the model
-	uniform_buffer ubo;
+	cam.pos.x = 10.0f;
+	cam.pos.y = 6.0f;
+	cam.pos.z = 10.0f;
+	cam.pitch = -10.0f;
+	cam.yaw = 55.0f;
+
+	float sail_angle = 0.0f;
 
 	// clang-format off
 	window.run_loop({
 		.on_update = [&](float dt) {
 			ui.begin();
-			ImGui::Begin("My Window");
-			ImGui::Text("Hello world");
-			if (ImGui::Button("Click me")) {
-				// ...
-			}
+			ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
+			ImGui::Begin("Boat Settings");
+			ImGui::SliderFloat("Sail Angle", &sail_angle, -90.0f, 90.0f, "%.1f deg");
 			ImGui::End();
 			ui.end();
 
 			if (!ui.is_cursor_hovering_over() || cam.is_cursor_captured()) {
 				cam.update_fps_pose_from_glfw_input(window.glfw_window, dt);
 			}
-
-			glm::mat4 M = glm::mat4(1.0f);
-			glm::mat4 V = cam.calc_view_mat();
-			glm::mat4 P = cam.calc_proj_mat();
-			ubo.update(M, V, P);
 		},
 		.on_draw = [&]() {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			
-			ubo.bind(0);
+			ubo_mvp.bind(0);
+			ubo_mat.bind(1);
 			lit.bind();
-			sailboat.draw();
+
+			glm::mat4 M_base = glm::mat4(1.0f);
+			glm::mat4 V = cam.calc_view_mat();
+			glm::mat4 P = cam.calc_proj_mat();
+			ubo_mvp.update(M_base, V, P);
+			
+			// Draw base
+			boat_base.draw_parts(ubo_mat);
+			
+			// Draw sail with rotation
+			glm::mat4 M_sail = glm::rotate(glm::mat4(1.0f), 
+			                               glm::radians(sail_angle), 
+			                               glm::vec3(0.0f, 1.0f, 0.0f));
+			ubo_mvp.update(M_sail, V, P);
+			boat_sail.draw_parts(ubo_mat);
 
 			ui.draw();
 		},

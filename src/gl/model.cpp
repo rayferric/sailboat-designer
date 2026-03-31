@@ -1,5 +1,4 @@
 #include "model.hpp"
-#include "pch.hpp"
 
 mesh::mesh() {
 	// gen array
@@ -272,10 +271,19 @@ void model::load_from_glb(const std::filesystem::path &path) {
 				    part &p = parts.emplace_back();
 				    p.mesh.load(vertices);
 
-				    // load material texture if available
+				    // load material if available
 				    if (primitive.material >= 0) {
 					    const auto &mat =
 					        gltf_scene.materials[primitive.material];
+
+					    // color factor
+					    auto &bcf = mat.pbrMetallicRoughness.baseColorFactor;
+					    p.mat.color =
+					        (bcf.size() == 4)
+					            ? glm::vec4(bcf[0], bcf[1], bcf[2], bcf[3])
+					            : glm::vec4(1.0f);
+
+					    // color texture
 					    if (mat.pbrMetallicRoughness.baseColorTexture.index >=
 					        0) {
 						    const auto &tex =
@@ -285,9 +293,15 @@ void model::load_from_glb(const std::filesystem::path &path) {
 						    const auto &img = gltf_scene.images[tex.source];
 						    GLenum format =
 						        (img.component == 4) ? GL_RGBA : GL_RGB;
-						    p.mat.albedo_tex.emplace();
-						    p.mat.albedo_tex.value().load(
+						    p.mat.color_tex.emplace();
+						    p.mat.color_tex.value().load(
 						        img.image.data(), img.width, img.height, format
+						    );
+					    } else {
+						    // default white texture
+						    p.mat.color_tex.emplace();
+						    p.mat.color_tex.value().load(
+						        (uint8_t[]){255, 255, 255}, 1, 1, GL_RGB
 						    );
 					    }
 				    }
@@ -308,11 +322,13 @@ void model::load_from_glb(const std::filesystem::path &path) {
 	}
 }
 
-void model::draw() {
+void model::draw_parts(uniform_buffer &ubo) {
 	for (auto &part : parts) {
-		if (part.mat.albedo_tex.has_value()) {
-			part.mat.albedo_tex.value().bind(0);
+		if (part.mat.color_tex.has_value()) {
+			part.mat.color_tex.value().bind(0);
 		}
+
+		ubo.update(part.mat.color);
 
 		auto &m = part.mesh;
 		glBindVertexArray(m.vao);

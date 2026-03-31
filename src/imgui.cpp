@@ -4,6 +4,7 @@ imgui::imgui(GLFWwindow *glfw_window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
+	io.IniFilename = NULL;
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 	ImGui_ImplGlfw_InitForOpenGL(glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");

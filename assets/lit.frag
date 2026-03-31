@@ -6,10 +6,14 @@ layout(location = 0) in vec2 v_TexCoord;
 // layout(location = 1) in mat3 v_TBN;
 layout(location = 1) in vec3 v_Normal;
 
-layout(binding = 0) uniform sampler2D tex_Albedo;
+layout(std140, binding = 1) uniform Mat {
+	vec4 color;
+} u_Mat;
+
+layout(binding = 0) uniform sampler2D tex_Color;
 
 void main() {
-	vec3 albedo = texture(tex_Albedo, v_TexCoord).xyz;
+	vec3 albedo = (u_Mat.color * texture(tex_Color, v_TexCoord)).xyz;
 
 	// vec3 N = normalize(v_TBN * vec3(0.0, 0.0, 1.0));
 	vec3 N = normalize(v_Normal);

@@ -3,6 +3,7 @@
 #include "../pch.hpp"
 
 #include "./texture.hpp"
+#include "./uniform_buffer.hpp"
 
 struct vertex {
 	float pos[3];
@@ -27,7 +28,8 @@ public:
 };
 
 struct material {
-	std::optional<texture> albedo_tex;
+	glm::vec4 color;
+	std::optional<texture> color_tex;
 };
 
 struct part {
@@ -38,9 +40,8 @@ struct part {
 class model {
 public:
 	void load_from_glb(const std::filesystem::path &path);
-	void draw();
+	void draw_parts(uniform_buffer &ubo);
 
 private:
 	std::vector<part> parts;
-	// uniform_buffer ubo;
 };
