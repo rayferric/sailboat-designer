@@ -20,17 +20,10 @@ int main() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	model boat_base, boat_sail;
-	boat_base.load_from_glb(
-	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/kuba_boat_base.glb"
-	);
-	boat_sail.load_from_glb(
-	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/kuba_boat_sail.glb"
-	);
+	boat_base.load_from_glb("assets/kuba_boat_base.glb");
+	boat_sail.load_from_glb("assets/kuba_boat_sail.glb");
 	shader lit;
-	lit.compile_from_files(
-	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/lit.vert",
-	    "/home/rayferric/School/gis1-pg3d/sailboat-designer/assets/lit.frag"
-	);
+	lit.compile_from_files("assets/lit.vert", "assets/lit.frag");
 	uniform_buffer ubo_mvp;
 	uniform_buffer ubo_mat;
 
@@ -47,8 +40,16 @@ int main() {
 	window.run_loop({
 		.on_update = [&](float dt) {
 			ui.begin();
-			ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
-			ImGui::Begin("Boat Settings");
+			ImGui::SetNextWindowSize(ImVec2(300, 130), ImGuiCond_FirstUseEver);
+			ImGui::Begin("Controls");
+			ImGui::TextWrapped(
+				"FPS Camera:\n"
+				"  LMB in viewport: Start flying\n"
+				"  WSADEQ: Movement commands\n"
+				"  SHIFT/CTRL: Movement speed\n"
+				"  ESC: Show cursor"
+			);
+			ImGui::Separator();
 			ImGui::SliderFloat("Sail Angle", &sail_angle, -90.0f, 90.0f, "%.1f deg");
 			ImGui::End();
 			ui.end();
