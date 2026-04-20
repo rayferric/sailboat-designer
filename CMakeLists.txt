@@ -28,3 +28,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
     glad glfw glm imgui stb tinygltf
 )
+
+# install assets
+add_custom_command(TARGET sailboat_designer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:sailboat_designer>/assets"
+)
