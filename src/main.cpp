@@ -61,7 +61,7 @@ int main() {
             }
             
 			// Editor and camera update
-            bool editor_in_use = props.update(window, renderer.cam, raycaster, root, boat_base, ui.is_cursor_hovering_over());
+            bool editor_in_use = props.update(window, renderer.cam, raycaster, root, root, ui.is_cursor_hovering_over());
 			bool prevent_mouse_capture = editor_in_use || ui.is_cursor_hovering_over();
 			renderer.cam.update_fps_pose_from_glfw_input(window.glfw_window, dt, prevent_mouse_capture);
 
