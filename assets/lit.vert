@@ -12,6 +12,7 @@ layout(location = 1) out vec3 v_Normal;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
+	float time;
 } u_Frame;
 
 layout(std140, binding = 1) uniform Entity {

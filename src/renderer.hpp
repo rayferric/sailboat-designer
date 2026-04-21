@@ -17,9 +17,12 @@ public:
 
 private:
     shader lit;
+    shader water;
     uniform_buffer ubo_frame;
     uniform_buffer ubo_entity;
     uniform_buffer ubo_material;
+
+    GLuint empty_vao;
 
     void draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P, glm::vec4 tint);
 };

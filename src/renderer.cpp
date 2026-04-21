@@ -1,7 +1,11 @@
 #include "renderer.hpp"
+#include <GLFW/glfw3.h>
 
 renderer::renderer() {
     lit.compile_from_files("assets/lit.vert", "assets/lit.frag");
+    water.compile_from_files("assets/water.vert", "assets/water.frag");
+
+    glGenVertexArrays(1, &empty_vao);
 }
 
 void renderer::draw(const std::shared_ptr<entity>& root) {
@@ -21,11 +25,17 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     glm::mat4 V = cam.calc_view_mat();
     glm::mat4 P = cam.calc_proj_mat();
-    ubo_frame.update(V, P);
+    ubo_frame.update(V, P, (float)glfwGetTime());
 
     glm::vec4 tint(0.0f);
 
     draw_recursive(root, V, P, tint);
+
+    // Draw water
+    water.bind();
+    glBindVertexArray(empty_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 400 * 400 * 6);
+    glBindVertexArray(0);
 }
 
 void renderer::draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P, glm::vec4 tint) {
