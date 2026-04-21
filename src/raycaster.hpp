@@ -26,10 +26,10 @@ public:
     raycaster() = default;
 
     ray gen_mouse_cursor_ray(const window& win, const fps_camera& cam) const;
-    hit_result cast_ray(const std::shared_ptr<entity>& root_node, const ray& world_ray) const;
+    hit_result cast_ray(const std::shared_ptr<entity>& root_node, const ray& world_ray, const entity* ignore_entity = nullptr) const;
 
 private:
-    void cast_recursive(const std::shared_ptr<entity>& current, const ray& world_ray, hit_result& closest_hit) const;
+    void cast_recursive(const std::shared_ptr<entity>& current, const ray& world_ray, hit_result& closest_hit, const entity* ignore_entity) const;
     bool intersect_aabb(const glm::vec3& aabb_min, const glm::vec3& aabb_max, const ray& local_ray) const;
     hit_result intersect_triangle(const ray& r, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) const;
 };

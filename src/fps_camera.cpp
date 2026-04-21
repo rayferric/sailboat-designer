@@ -21,14 +21,14 @@ glm::mat4 fps_camera::calc_proj_mat() const {
 	);
 }
 
-void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
+void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt, bool prevent_mouse_capture) {
 	// if esc pressed, release cursor
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		captured_cursor = false;
 	}
 
 	// if clicked anywhere in the window, capture cursor
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !prevent_mouse_capture) {
 		captured_cursor = true;
 	}
 
@@ -65,7 +65,8 @@ void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
 		return;
 	}
 
-	// update rot if captured
+	// update rot and move_offset if captured
+	glm::vec3 move_offset = glm::vec3(0.0f);
 	if (captured_cursor) {
 		// remap sensitivity from rots per screen to deg/px
 		// > get monitor width
@@ -89,7 +90,6 @@ void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
 		constexpr glm::vec3 right(1.0f, 0.0f, 0.0f);
 		constexpr glm::vec3 up(0.0f, 1.0f, 0.0f);
 		constexpr glm::vec3 back(0.0f, 0.0f, 1.0f);
-		glm::vec3 move_offset = glm::vec3(0.0f);
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			move_offset -= back * dt * movement_speed;
 		}
@@ -120,14 +120,14 @@ void fps_camera::update_fps_pose_from_glfw_input(GLFWwindow *window, float dt) {
 		    glm::rotate(glm::mat4(1.0f), glm::radians(pitch), right);
 		rot = glm::rotate(glm::mat4(1.0f), glm::radians(yaw), up) * rot;
 		move_offset = glm::vec3(rot * glm::vec4(move_offset, 0.0f));
-
-		// smooth move_offset
-		move_offset = move_offset * (1.0f - move_smoothing) +
-		              last_move_offset * move_smoothing;
-		last_move_offset = move_offset;
-
-		pos += move_offset;
 	}
+
+	// smooth move_offset
+	move_offset = move_offset * (1.0f - move_smoothing) +
+					last_move_offset * move_smoothing;
+	last_move_offset = move_offset;
+
+	pos += move_offset;
 }
 
 bool fps_camera::is_cursor_captured() const {

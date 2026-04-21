@@ -16,8 +16,10 @@ public:
     // components
     std::shared_ptr<model> model_asset;
     std::shared_ptr<collider> collider_asset;
+    std::shared_ptr<glm::vec4> tint;
 
     void add_child(std::shared_ptr<entity> child);
+    void remove_child(const std::shared_ptr<entity>& child);
 
     glm::mat4 get_local_matrix() const;
     glm::mat4 get_world_matrix() const;

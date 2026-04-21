@@ -5,6 +5,14 @@ void entity::add_child(std::shared_ptr<entity> child) {
     children.push_back(child);
 }
 
+void entity::remove_child(const std::shared_ptr<entity>& child) {
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end()) {
+        children.erase(it);
+        child->parent.reset();
+    }
+}
+
 glm::mat4 entity::get_local_matrix() const {
     return glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation);
 }

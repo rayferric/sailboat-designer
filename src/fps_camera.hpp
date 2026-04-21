@@ -25,7 +25,7 @@ public:
 	float look_smoothing = 0.7f;
 	float move_smoothing = 0.9f;
 
-	void update_fps_pose_from_glfw_input(GLFWwindow *glfw_window, float dt);
+	void update_fps_pose_from_glfw_input(GLFWwindow *glfw_window, float dt, bool allow_mouse_capture = true);
 
 	bool is_cursor_captured() const;
 

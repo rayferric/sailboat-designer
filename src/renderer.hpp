@@ -17,8 +17,9 @@ public:
 
 private:
     shader lit;
-    uniform_buffer ubo_mvp;
-    uniform_buffer ubo_mat;
+    uniform_buffer ubo_frame;
+    uniform_buffer ubo_entity;
+    uniform_buffer ubo_material;
 
-    void draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P);
+    void draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P, glm::vec4 tint);
 };

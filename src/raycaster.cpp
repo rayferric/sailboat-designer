@@ -69,14 +69,14 @@ bool raycaster::intersect_aabb(const glm::vec3& aabb_min, const glm::vec3& aabb_
     return tfar >= tnear && tfar > 0.0f;
 }
 
-hit_result raycaster::cast_ray(const std::shared_ptr<entity>& root_node, const ray& world_ray) const {
+hit_result raycaster::cast_ray(const std::shared_ptr<entity>& root_node, const ray& world_ray, const entity* ignore_entity) const {
     hit_result closest;
-    cast_recursive(root_node, world_ray, closest);
+    cast_recursive(root_node, world_ray, closest, ignore_entity);
     return closest;
 }
 
-void raycaster::cast_recursive(const std::shared_ptr<entity>& current, const ray& world_ray, hit_result& closest_hit) const {
-    if (!current) return;
+void raycaster::cast_recursive(const std::shared_ptr<entity>& current, const ray& world_ray, hit_result& closest_hit, const entity* ignore_entity) const {
+    if (!current || current.get() == ignore_entity) return;
 
     if (current->collider_asset && !current->collider_asset->triangles.empty()) {
         glm::mat4 inv_world = glm::inverse(current->get_world_matrix());
@@ -107,6 +107,6 @@ void raycaster::cast_recursive(const std::shared_ptr<entity>& current, const ray
     }
 
     for (const auto& child : current->children) {
-        cast_recursive(child, world_ray, closest_hit);
+        cast_recursive(child, world_ray, closest_hit, ignore_entity);
     }
 }
