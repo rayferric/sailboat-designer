@@ -4,6 +4,9 @@
 renderer::renderer() {
     lit.compile_from_files("assets/lit.vert", "assets/lit.frag");
     water.compile_from_files("assets/water.vert", "assets/water.frag");
+    sky.compile_from_files("assets/sky.vert", "assets/sky.frag");
+
+    sky_tex.load_hdr_equirect("assets/sky.hdr");
 
     glGenVertexArrays(1, &empty_vao);
 }
@@ -21,12 +24,21 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
     ubo_frame.bind(0);
     ubo_entity.bind(1);
     ubo_material.bind(2);
-    lit.bind();
 
     glm::mat4 V = cam.calc_view_mat();
     glm::mat4 P = cam.calc_proj_mat();
     ubo_frame.update(V, P, (float)glfwGetTime());
 
+    // Draw sky background
+    glDisable(GL_DEPTH_TEST);
+    sky.bind();
+    sky_tex.bind(0);
+    glBindVertexArray(empty_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);
+
+    lit.bind();
     glm::vec4 tint(0.0f);
 
     draw_recursive(root, V, P, tint);

@@ -11,6 +11,7 @@ public:
 	}
 
 	void load(const void *data, int width, int height, GLenum format = GL_RGBA);
+	void load_hdr_equirect(const std::filesystem::path &path);
 	void bind(uint32_t binding = 0);
 
 private:

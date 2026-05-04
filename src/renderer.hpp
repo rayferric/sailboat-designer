@@ -3,6 +3,7 @@
 #include "pch.hpp"
 
 #include "./gl/shader.hpp"
+#include "./gl/texture.hpp"
 #include "./gl/uniform_buffer.hpp"
 #include "./fps_camera.hpp"
 #include "./entity.hpp"
@@ -18,6 +19,8 @@ public:
 private:
     shader lit;
     shader water;
+    shader sky;
+    texture sky_tex;
     uniform_buffer ubo_frame;
     uniform_buffer ubo_entity;
     uniform_buffer ubo_material;
