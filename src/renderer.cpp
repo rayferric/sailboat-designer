@@ -43,10 +43,11 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     draw_recursive(root, V, P, tint);
 
-    // Draw water
+    // Draw water (samples HDR sky for reflection and horizon fade)
     water.bind();
+    sky_tex.bind(0);
     glBindVertexArray(empty_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 400 * 400 * 6);
+    glDrawArrays(GL_TRIANGLES, 0, 800 * 800 * 6);
     glBindVertexArray(0);
 }
 

@@ -9,7 +9,7 @@ layout(std140, binding = 0) uniform Frame {
     float time;
 } u_Frame;
 
-const int GRID_SIZE = 400;
+const int GRID_SIZE = 800;
 const float QUAD_SIZE = 0.5;
 
 const int NUM_WAVES = 9;
