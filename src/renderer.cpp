@@ -6,7 +6,7 @@ renderer::renderer() {
     water.compile_from_files("assets/water.vert", "assets/water.frag");
     sky.compile_from_files("assets/sky.vert", "assets/sky.frag");
 
-    sky_tex.load_hdr_equirect("assets/sky.hdr");
+    sky_tex.load_hdr_equirect("assets/sky.hdr", &sun_dir);
 
     glGenVertexArrays(1, &empty_vao);
 }
@@ -27,7 +27,14 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     glm::mat4 V = cam.calc_view_mat();
     glm::mat4 P = cam.calc_proj_mat();
-    ubo_frame.update(V, P, (float)glfwGetTime());
+    // Frame UBO std140: mat4 V, mat4 P, float time, [12B pad], vec4 sunDir, vec4 sunColor
+    // sunColor is a warm white with magnitude ~10 (in linear HDR units) — handled by tonemap.
+    ubo_frame.update(
+        V, P, (float)glfwGetTime(),
+        glm::vec3(0.0f),
+        glm::vec4(sun_dir, 0.0f),
+        glm::vec4(10.0f, 9.0f, 8.0f, 1.0f)
+    );
 
     // Draw sky background
     glDisable(GL_DEPTH_TEST);
@@ -38,6 +45,8 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
     glBindVertexArray(0);
     glEnable(GL_DEPTH_TEST);
 
+    // Bind sky to unit 1 so lit.frag can sample it for ambient + specular env.
+    sky_tex.bind(1);
     lit.bind();
     glm::vec4 tint(0.0f);
 

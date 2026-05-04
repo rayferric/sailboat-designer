@@ -11,7 +11,10 @@ public:
 	}
 
 	void load(const void *data, int width, int height, GLenum format = GL_RGBA);
-	void load_hdr_equirect(const std::filesystem::path &path);
+	void load_hdr_equirect(
+	    const std::filesystem::path &path,
+	    glm::vec3 *out_brightest_dir = nullptr
+	);
 	void bind(uint32_t binding = 0);
 
 private:

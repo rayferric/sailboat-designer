@@ -7,6 +7,7 @@
 #include "./prop_editor.hpp"
 #include "./imgui.h"
 #include "GLFW/glfw3.h"
+#include <windows.h>
 
 std::shared_ptr<entity> load_prop(const std::filesystem::path& path) {
     auto ent = std::make_shared<entity>();
@@ -18,6 +19,7 @@ std::shared_ptr<entity> load_prop(const std::filesystem::path& path) {
 }
 
 int main() {
+  try {
     window window;
     window.open(1280, 720, "Sailboat Designer - Props Editor");
 
@@ -49,6 +51,7 @@ int main() {
     props.register_prop_type("Lifebuoy", "assets/lifebuoy.glb");
 
     float sail_angle = 0.0f;
+    float boat_height = 0.0f;
 
     // --- Main Loop ---
     // clang-format off
@@ -75,6 +78,7 @@ int main() {
             );
             ImGui::Separator();
             ImGui::SliderFloat("Sail Angle", &sail_angle, -90.0f, 90.0f, "%.1f deg");
+            ImGui::SliderFloat("Boat Height", &boat_height, -2.0f, 2.0f, "%.2f");
             ImGui::End();
 			
             if (ui_disabled) {
@@ -83,6 +87,7 @@ int main() {
             ui.end();
 
 			boat_sail->rotation = glm::angleAxis(glm::radians(sail_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+            boat_base->position = glm::vec3(0.0f, boat_height, 0.0f);
         },
         .on_draw = [&]() {
             renderer.draw(root);
@@ -97,4 +102,8 @@ int main() {
     // clang-format on
 
     return 0;
+  } catch (const std::exception &e) {
+    MessageBoxA(nullptr, e.what(), "Fatal Error", MB_OK | MB_ICONERROR);
+    return 1;
+  }
 }

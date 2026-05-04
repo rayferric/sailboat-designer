@@ -21,6 +21,7 @@ private:
     shader water;
     shader sky;
     texture sky_tex;
+    glm::vec3 sun_dir;
     uniform_buffer ubo_frame;
     uniform_buffer ubo_entity;
     uniform_buffer ubo_material;

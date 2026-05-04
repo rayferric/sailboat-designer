@@ -283,6 +283,10 @@ void model::load_from_glb(const std::filesystem::path &path) {
 					            ? glm::vec4(bcf[0], bcf[1], bcf[2], bcf[3])
 					            : glm::vec4(1.0f);
 
+					    // metallic / roughness factors
+					    p.mat.metallic  = (float)mat.pbrMetallicRoughness.metallicFactor;
+					    p.mat.roughness = (float)mat.pbrMetallicRoughness.roughnessFactor;
+
 					    // color texture
 					    if (mat.pbrMetallicRoughness.baseColorTexture.index >=
 					        0) {
@@ -327,7 +331,7 @@ void model::draw_parts(uniform_buffer &ubo) {
 			part.mat.color_tex.value().bind(0);
 		}
 
-		ubo.update(part.mat.color);
+		ubo.update(part.mat.color, glm::vec4(part.mat.metallic, part.mat.roughness, 0.0f, 0.0f));
 
 		auto &m = part.mesh;
 		glBindVertexArray(m.vao);
