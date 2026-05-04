@@ -36,14 +36,14 @@ int main() {
 
     // --- Scene ---
     auto root = std::make_shared<entity>();
-    auto boat_base = load_prop("assets/kuba_boat_base.glb");
-    auto boat_sail = load_prop("assets/kuba_boat_sail.glb");
+    auto boat_base = load_prop("assets/sailboat.glb");
+    //auto boat_sail = load_prop("assets/kuba_boat_sail.glb");
     auto lighthouse = load_prop("assets/lighthouse.glb");
     lighthouse->position = glm::vec3(-20.0f, 0.0f, -50.0f);
     lighthouse->rotation = glm::angleAxis(glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     root->add_child(boat_base);
     root->add_child(lighthouse);
-    boat_base->add_child(boat_sail); // Attach sail to boat_base
+    //boat_base->add_child(boat_sail); // Attach sail to boat_base
 
     // --- Props ---
     prop_editor props;
@@ -52,6 +52,7 @@ int main() {
 
     float sail_angle = 0.0f;
     float boat_height = 0.0f;
+    float boat_scale = 3.0f;
 
     // --- Main Loop ---
     // clang-format off
@@ -79,6 +80,7 @@ int main() {
             ImGui::Separator();
             ImGui::SliderFloat("Sail Angle", &sail_angle, -90.0f, 90.0f, "%.1f deg");
             ImGui::SliderFloat("Boat Height", &boat_height, -2.0f, 2.0f, "%.2f");
+            ImGui::SliderFloat("Boat Scale", &boat_scale, 0.01, 10.0, "%.3f");
             ImGui::End();
 			
             if (ui_disabled) {
@@ -86,8 +88,9 @@ int main() {
             }
             ui.end();
 
-			boat_sail->rotation = glm::angleAxis(glm::radians(sail_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+			//boat_sail->rotation = glm::angleAxis(glm::radians(sail_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             boat_base->position = glm::vec3(0.0f, boat_height, 0.0f);
+            boat_base->scale = boat_scale;
         },
         .on_draw = [&]() {
             renderer.draw(root);

@@ -14,7 +14,7 @@ void entity::remove_child(const std::shared_ptr<entity>& child) {
 }
 
 glm::mat4 entity::get_local_matrix() const {
-    return glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation);
+    return glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), glm::vec3(scale));
 }
 
 glm::mat4 entity::get_world_matrix() const {
