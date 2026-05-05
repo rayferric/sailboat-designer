@@ -300,13 +300,13 @@ void model::load_from_glb(const std::filesystem::path &path) {
 						        (img.component == 4) ? GL_RGBA : GL_RGB;
 						    p.mat.color_tex.emplace();
 						    p.mat.color_tex.value().load(
-						        img.image.data(), img.width, img.height, format
+						        img.image.data(), img.width, img.height, format, true
 						    );
 					    } else {
 						    // default white texture
 						    p.mat.color_tex.emplace();
 							uint8_t white_pixel[] = {255, 255, 255};
-							p.mat.color_tex.value().load(white_pixel, 1, 1, GL_RGB);
+							p.mat.color_tex.value().load(white_pixel, 1, 1, GL_RGB, true);
 					    }
 				    }
 			    }

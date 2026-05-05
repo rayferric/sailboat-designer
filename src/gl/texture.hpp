@@ -10,7 +10,7 @@ public:
 		t.tex_id = 0;
 	}
 
-	void load(const void *data, int width, int height, GLenum format = GL_RGBA);
+	void load(const void *data, int width, int height, GLenum format = GL_RGBA, bool srgb = false);
 	void load_hdr_equirect(
 	    const std::filesystem::path &path,
 	    glm::vec3 *out_brightest_dir = nullptr

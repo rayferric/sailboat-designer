@@ -54,7 +54,10 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     draw_recursive(root, V, P, tint);
 
-    // Draw water (samples HDR sky for reflection and horizon fade)
+    // Draw water (samples HDR sky for reflection and horizon fade).
+    // Water mesh is single-sided in winding but visually double-sided — back
+    // faces of wave slopes must remain visible, so culling is off here.
+    glDisable(GL_CULL_FACE);
     water.bind();
     sky_tex.bind(0);
     glBindVertexArray(empty_vao);

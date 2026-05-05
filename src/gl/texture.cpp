@@ -8,10 +8,16 @@ texture::~texture() {
 	glDeleteTextures(1, &tex_id);
 }
 
-void texture::load(const void *data, int w, int h, GLenum format) {
+void texture::load(const void *data, int w, int h, GLenum format, bool srgb) {
 	glBindTexture(GL_TEXTURE_2D, tex_id);
 
-	GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+	// sRGB internal format makes the GPU decode gamma at sample time, so the
+	// shader receives linear data. Required for color textures (glTF baseColor)
+	// — without it, PBR math operates on gamma-encoded values and outputs look
+	// washed out. Data textures (normal/metallic/roughness) must stay linear.
+	GLenum internal_format;
+	if (format == GL_RGBA) internal_format = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+	else                   internal_format = srgb ? GL_SRGB8        : GL_RGB8;
 	glTexImage2D(
 	    GL_TEXTURE_2D,
 	    0,
