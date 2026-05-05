@@ -33,8 +33,17 @@ private:
         removing
     };
 
+    void renderGUI(const std::shared_ptr<entity>& root);
+    void handleModePlacing(const window& win, const fps_camera& cam, const raycaster& rc, 
+                         const std::shared_ptr<entity>& root, const std::shared_ptr<entity>& target_hierarchy, 
+                         bool ui_hovered);
+    void handleModeRemoving(const window& win, const fps_camera& cam, const raycaster& rc, 
+                         const std::shared_ptr<entity>& root, const std::shared_ptr<entity>& target_hierarchy, 
+                         bool ui_hovered);
+
     mode current_mode = mode::inactive;
     bool last_lmb = false;
+    bool lmb_just_released = false;
 
     std::vector<prop_definition> registered_props;
     std::vector<std::shared_ptr<entity>> placed_props;

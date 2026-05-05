@@ -2,10 +2,10 @@
 #include <GLFW/glfw3.h>
 
 renderer::renderer() {
-    lit.compile_from_files("assets/lit.vert", "assets/lit.frag");
-    water.compile_from_files("assets/water.vert", "assets/water.frag");
-    sky.compile_from_files("assets/sky.vert", "assets/sky.frag");
-    depth.compile_from_files("assets/depth.vert", "assets/depth.frag");
+    lit.compile_from_files("assets/shaders/lit.vert", "assets/shaders/lit.frag");
+    water.compile_from_files("assets/shaders/water.vert", "assets/shaders/water.frag");
+    sky.compile_from_files("assets/shaders/sky.vert", "assets/shaders/sky.frag");
+    depth.compile_from_files("assets/shaders/depth.vert", "assets/shaders/depth.frag");
 
     sky_tex.load_hdr_equirect("assets/sky.hdr", &sun_dir);
 

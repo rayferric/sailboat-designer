@@ -2,10 +2,9 @@
 
 class timer {
 public:
-	timer() {
-		last_update_time = std::chrono::steady_clock::now();
-	}
-	float dt() {
+	timer() : last_update_time(std::chrono::steady_clock::now()) { }
+
+	inline float delta_time() {
 		std::chrono::time_point now = std::chrono::steady_clock::now();
 		float dt = std::chrono::duration<float>(now - last_update_time).count();
 		last_update_time = now;
@@ -16,8 +15,6 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> last_update_time;
 };
 
-//////////
-
 void GLAPIENTRY opengl_error_callback(
     GLenum source,
     GLenum type,
@@ -25,18 +22,9 @@ void GLAPIENTRY opengl_error_callback(
     GLenum severity,
     GLsizei length,
     const GLchar *message,
-    const void *userParam
-) {
-	// ignore non-significant codes
-	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) {
-		return;
-	}
-
-	printf("OpenGL Debug Message (%d): %s\n", id, message);
-	printf("Source: %d, Type: %d, Severity: %d\n", source, type, severity);
+    const void *userParam) {
+	printf("[Source: %d][Type: %d][Severity: %d][Id: %d]: %s\n", source, type, severity, id, message);
 }
-
-//////////
 
 window::window() {
 	glfwInit();
@@ -92,7 +80,7 @@ void window::run_loop(const window::loop_info &info) {
 	while (!glfwWindowShouldClose(glfw_window)) {
 		glfwPollEvents();
 		if (cur_loop_info.on_update) {
-			cur_loop_info.on_update(t.dt());
+			cur_loop_info.on_update(t.delta_time());
 		}
 
 		if (cur_loop_info.on_draw) {

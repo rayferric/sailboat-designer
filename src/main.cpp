@@ -36,9 +36,9 @@ int main() {
 
     // --- Scene ---
     auto root = std::make_shared<entity>();
-    auto boat_base = load_prop("assets/kuba_boat_base.glb");
-    auto boat_sail = load_prop("assets/kuba_boat_sail.glb");
-    auto lighthouse = load_prop("assets/lighthouse.glb");
+    auto boat_base = load_prop("assets/models/kuba_boat_base.glb");
+    auto boat_sail = load_prop("assets/models/kuba_boat_sail.glb");
+    auto lighthouse = load_prop("assets/models/lighthouse.glb");
     lighthouse->position = glm::vec3(-20.0f, 0.0f, -50.0f);
     lighthouse->rotation = glm::angleAxis(glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     root->add_child(boat_base);
@@ -47,8 +47,8 @@ int main() {
 
     // --- Props ---
     prop_editor props;
-    props.register_prop_type("Test Cube", "assets/test_cube.glb");
-    props.register_prop_type("Lifebuoy", "assets/lifebuoy.glb");
+    props.register_prop_type("Test Cube", "assets/models/test_cube.glb");
+    props.register_prop_type("Lifebuoy", "assets/models/lifebuoy.glb");
 
     float sail_angle = 0.0f;
     float boat_height = 0.0f;
