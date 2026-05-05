@@ -16,6 +16,7 @@ layout(std140, binding = 0) uniform Frame {
 	float time;
 	vec4 sunDir;    // w = 0 (direction, not position)
 	vec4 sunColor;  // w = 1 (rgb = linear HDR radiance)
+	mat4 lightVP;   // sun's view-projection for shadow mapping
 } u_Frame;
 
 layout(std140, binding = 1) uniform Entity {
@@ -30,6 +31,7 @@ layout(std140, binding = 2) uniform Mat {
 
 layout(binding = 0) uniform sampler2D tex_Color;
 layout(binding = 1) uniform sampler2D tex_Sky;
+layout(binding = 2) uniform sampler2D tex_Shadow;
 
 const float PI = 3.14159265359;
 
@@ -68,12 +70,37 @@ vec3 F_Schlick(float cosTheta, vec3 F0) {
 	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+// 3x3 PCF shadow lookup. Returns 1.0 = fully lit, 0.0 = fully shadowed.
+// Bias scaled by surface angle to sun mitigates shadow acne on grazing slopes.
+float compute_shadow(vec3 worldPos, float NdotL) {
+	vec4 lp = u_Frame.lightVP * vec4(worldPos, 1.0);
+	vec3 proj = lp.xyz / lp.w;
+	proj = proj * 0.5 + 0.5;
+	if (proj.z > 1.0 || proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0) {
+		return 1.0;
+	}
+	float bias = max(0.003 * (1.0 - NdotL), 0.0005);
+	float currentDepth = proj.z - bias;
+	float result = 0.0;
+	// 5x5 PCF with 1.5-texel spacing — softer penumbra than tight 3x3.
+	vec2 texelSize = 1.5 / vec2(textureSize(tex_Shadow, 0));
+	for (int x = -2; x <= 2; ++x) {
+		for (int y = -2; y <= 2; ++y) {
+			float pcfDepth = texture(tex_Shadow, proj.xy + vec2(x, y) * texelSize).r;
+			result += currentDepth > pcfDepth ? 0.0 : 1.0;
+		}
+	}
+	return result / 25.0;
+}
+
 void main() {
 	// Material
 	vec3 albedo    = (u_Material.color * texture(tex_Color, v_TexCoord)).rgb;
 	albedo         = mix(albedo, u_Entity.tint.rgb, u_Entity.tint.a);
 	float metallic = u_Material.pbr.x;
-	float rough    = max(u_Material.pbr.y, 0.05);
+	// Floor raised to make hull/sail materials read as matte rather than
+	// plasticky — most glTF assets here ship with low roughness factors.
+	float rough    = max(u_Material.pbr.y, 0.6);
 
 	// Camera position from view matrix
 	mat3 Rv = mat3(u_Frame.viewMat);
@@ -102,7 +129,8 @@ void main() {
 	vec3 kd_direct = (1.0 - F_sun) * (1.0 - metallic);
 	vec3 diffuse_direct = kd_direct * albedo / PI;
 
-	vec3 Lo = (diffuse_direct + specular_direct) * u_Frame.sunColor.rgb * NdotL;
+	float shadow = compute_shadow(v_WorldPos, NdotL);
+	vec3 Lo = (diffuse_direct + specular_direct) * u_Frame.sunColor.rgb * NdotL * shadow;
 
 	// --- Sky environment (approximate IBL) ---
 	// Diffuse: sky radiance in normal direction as irradiance approximation.
@@ -115,7 +143,10 @@ void main() {
 	vec3 R_rough = mix(R, N, rough * rough);
 	vec3 specular_env = F_env * sample_sky(R_rough);
 
-	vec3 ambient = diffuse_env + specular_env;
+	// Cheap fake AO: surfaces facing down get less sky ambient than ones facing
+	// up. Approximates the fact that geometry below typically blocks the sky.
+	float ao = mix(0.4, 1.0, clamp(N.y * 0.5 + 0.5, 0.0, 1.0));
+	vec3 ambient = (diffuse_env + specular_env) * ao;
 
 	vec3 finalColor = Lo + ambient;
 

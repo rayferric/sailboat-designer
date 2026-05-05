@@ -30,10 +30,18 @@ void texture::load(const void *data, int w, int h, GLenum format, bool srgb) {
 	    data
 	);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// Mipmaps + trilinear + anisotropic — without these, oblique-angle views
+	// of textures alias or blur out (linear-only filtering picks the wrong
+	// texel ratio when the texture footprint stretches in screen space).
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	GLfloat max_aniso = 1.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max_aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(max_aniso, 16.0f));
 }
 
 void texture::load_hdr_equirect(const std::filesystem::path &path, glm::vec3 *out_brightest_dir) {

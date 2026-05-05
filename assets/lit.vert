@@ -15,6 +15,7 @@ layout(std140, binding = 0) uniform Frame {
 	float time;
 	vec4 sunDir;
 	vec4 sunColor;
+	mat4 lightVP;
 } u_Frame;
 
 layout(std140, binding = 1) uniform Entity {
