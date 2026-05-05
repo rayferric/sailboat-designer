@@ -15,6 +15,8 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
     if (!root) return;
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glClearColor(0.08f, 0.08f, 0.1f, 0.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

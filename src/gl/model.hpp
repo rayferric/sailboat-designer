@@ -29,8 +29,9 @@ public:
 
 struct material {
 	glm::vec4 color;
-	float metallic  = 0.0f;
-	float roughness = 0.5f;
+	float metallic    = 0.0f;
+	float roughness   = 0.5f;
+	bool double_sided = false;
 	std::optional<texture> color_tex;
 };
 

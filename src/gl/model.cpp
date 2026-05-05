@@ -284,8 +284,9 @@ void model::load_from_glb(const std::filesystem::path &path) {
 					            : glm::vec4(1.0f);
 
 					    // metallic / roughness factors
-					    p.mat.metallic  = (float)mat.pbrMetallicRoughness.metallicFactor;
-					    p.mat.roughness = (float)mat.pbrMetallicRoughness.roughnessFactor;
+					    p.mat.metallic      = (float)mat.pbrMetallicRoughness.metallicFactor;
+					    p.mat.roughness     = (float)mat.pbrMetallicRoughness.roughnessFactor;
+					    p.mat.double_sided  = mat.doubleSided;
 
 					    // color texture
 					    if (mat.pbrMetallicRoughness.baseColorTexture.index >=
@@ -327,6 +328,12 @@ void model::load_from_glb(const std::filesystem::path &path) {
 
 void model::draw_parts(uniform_buffer &ubo) {
 	for (auto &part : parts) {
+		if (part.mat.double_sided) {
+			glDisable(GL_CULL_FACE);
+		} else {
+			glEnable(GL_CULL_FACE);
+		}
+
 		if (part.mat.color_tex.has_value()) {
 			part.mat.color_tex.value().bind(0);
 		}
@@ -337,4 +344,5 @@ void model::draw_parts(uniform_buffer &ubo) {
 		glBindVertexArray(m.vao);
 		glDrawArrays(GL_TRIANGLES, 0, m.num_verts);
 	}
+	glEnable(GL_CULL_FACE);
 }
