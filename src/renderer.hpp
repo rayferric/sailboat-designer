@@ -5,6 +5,7 @@
 #include "./gl/shader.hpp"
 #include "./gl/texture.hpp"
 #include "./gl/uniform_buffer.hpp"
+#include "./gl/framebuffer.hpp"
 #include "./fps_camera.hpp"
 #include "./entity.hpp"
 
@@ -21,6 +22,7 @@ private:
     shader water;
     shader sky;
     shader depth;
+    shader tonemap;
     texture sky_tex;
     glm::vec3 sun_dir;
     uniform_buffer ubo_frame;
@@ -29,9 +31,11 @@ private:
 
     GLuint empty_vao;
 
-    GLuint shadow_fbo = 0;
-    GLuint shadow_tex = 0;
+    framebuffer shadow_fb;
     static constexpr int shadow_size = 4096;
+
+    framebuffer opaque_fb;
+    framebuffer water_fb;
 
     void draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P, glm::vec4 tint);
 };

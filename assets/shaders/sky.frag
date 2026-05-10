@@ -19,9 +19,5 @@ void main() {
 	vec3 dir = normalize(v_Dir);
 	vec3 hdr = texture(tex_Sky, sample_equirect(dir)).rgb;
 
-	// Reinhard tonemap + gamma
-	vec3 mapped = hdr / (hdr + 1.0);
-	mapped = pow(mapped, vec3(1.0 / 2.2));
-
-	out_Color = vec4(mapped, 1.0);
+	out_Color = vec4(hdr, 1.0);
 }

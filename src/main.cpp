@@ -6,8 +6,6 @@
 #include "./raycaster.hpp"
 #include "./prop_editor.hpp"
 #include "./imgui.h"
-#include "GLFW/glfw3.h"
-#include <windows.h>
 
 std::shared_ptr<entity> load_prop(const std::filesystem::path& path) {
     auto ent = std::make_shared<entity>();
@@ -94,6 +92,7 @@ int main() {
             ui.draw();
         },
         .on_resize = [&](uint32_t w, uint32_t h) {
+            if (w == 0 || h == 0) return;
             glViewport(0, 0, w, h);
             renderer.cam.width = w;
             renderer.cam.height = h;
@@ -103,7 +102,7 @@ int main() {
 
     return 0;
   } catch (const std::exception &e) {
-    MessageBoxA(nullptr, e.what(), "Fatal Error", MB_OK | MB_ICONERROR);
+    std::cout << "Fatal error: " << e.what() << "\n";
     return 1;
   }
 }

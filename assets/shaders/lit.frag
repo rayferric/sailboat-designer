@@ -150,20 +150,16 @@ void main() {
 
 	vec3 finalColor = Lo + ambient;
 
-	// Underwater fog. Geometry below the water plane (y = 0) fades toward the
-	// deep water color exponentially with depth, so the submerged part of the
-	// hull dissolves into the water instead of being plainly visible through
-	// the translucent surface. Color matches water.frag's deepWaterColor.
-	if (v_WorldPos.y < 0.0) {
-		float depth = -v_WorldPos.y;
-		float fog = 1.0 - exp(-depth * 1.8);
-		vec3 deepWaterColor = vec3(0.01, 0.08, 0.16);
-		finalColor = mix(finalColor, deepWaterColor, fog);
-	}
-
-	// Reinhard tonemap + gamma — same pipeline as sky.frag and water.frag.
-	finalColor = finalColor / (finalColor + 1.0);
-	finalColor = pow(finalColor, vec3(1.0 / 2.2));
+	// // Underwater fog. Geometry below the water plane (y = 0) fades toward the
+	// // deep water color exponentially with depth, so the submerged part of the
+	// // hull dissolves into the water instead of being plainly visible through
+	// // the translucent surface. Color matches water.frag's deepWaterColor.
+	// if (v_WorldPos.y < 0.0) {
+	// 	float depth = -v_WorldPos.y;
+	// 	float fog = 1.0 - exp(-depth * 1.8);
+	// 	vec3 deepWaterColor = vec3(0.01, 0.04, 0.08);
+	// 	finalColor = mix(finalColor, deepWaterColor, fog);
+	// }
 
 	out_Color = vec4(finalColor, 1.0);
 }

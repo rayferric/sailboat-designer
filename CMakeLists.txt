@@ -30,8 +30,11 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # install assets
-add_custom_command(TARGET sailboat_designer POST_BUILD
+file(GLOB_RECURSE ASSET_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+add_custom_target(sync_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/assets"
         "$<TARGET_FILE_DIR:sailboat_designer>/assets"
+    DEPENDS ${ASSET_FILES}
 )
+add_dependencies(sailboat_designer sync_assets)
