@@ -49,7 +49,7 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
         V, P, (float)glfwGetTime(),
         glm::vec3(0.0f),
         glm::vec4(sun_dir, 0.0f),
-        glm::vec4(10.0f, 9.0f, 8.0f, 1.0f),
+        glm::vec4(10.0f, 9.0f, 8.0f, 1.0f) * 0.5f,
         lightVP
     );
 

@@ -164,8 +164,8 @@ RayMarchResult rayMarch(
 				finalCoord = inFront ? finalCoord : screen;
 			}
 
-			float thickness  = rayDepth * 0.1 + 1.0;
-			thickness        = pow(thickness, 1.5);
+			float thickness  = rayDepth * 0.08 + 1.0;
+			thickness        = pow(thickness, 1.0);
 			thickness       -= 1.0;
 			if (depthDiff > thickness) {
 				break;

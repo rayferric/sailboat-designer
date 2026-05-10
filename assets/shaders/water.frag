@@ -61,40 +61,6 @@ vec3 calculateSSR(vec3 viewPos, vec3 viewNormal, vec3 viewIncident, out bool hit
     return vec3(0.0);
 }
 
-vec3 calculateRefraction(vec3 viewPos, vec3 viewNormal, vec3 viewIncident, out bool hit, out vec2 refractUV) {
-    // Snell's law refraction - air to water (n1=1.0, n2=1.33)
-    float eta = 1.0 / 1.33;
-    vec3 refractDir = refract(viewIncident, viewNormal, eta);
-    
-    // If total internal reflection occurs, fall back to reflection direction
-    if (length(refractDir) < 0.001) {
-        refractDir = reflect(viewIncident, viewNormal);
-    }
-    
-    RayMarchResult rm = rayMarch(
-        tex_Depth,
-        u_Frame.projMat,
-        u_Frame.time,
-        viewPos,
-        refractDir,
-        200.0, // rayLength
-        0.05,  // bias
-        32,    // stepCount
-        8      // refineStepCount
-    );
-    
-    hit = rm.hasHit;
-    refractUV = rm.coord;
-    
-    if (rm.hasHit) {
-        return texture(tex_Opaque, rm.coord).rgb;
-    }
-    
-    // If ray doesn't hit anything, sample sky in refracted direction
-    vec3 worldRefractDir = transpose(mat3(u_Frame.viewMat)) * refractDir;
-    return sample_sky(worldRefractDir);
-}
-
 void main() {
     mat3 R = mat3(u_Frame.viewMat);
     vec3 T_vec = vec3(u_Frame.viewMat[3]);
