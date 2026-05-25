@@ -275,6 +275,8 @@ void model::load_from_glb(const std::filesystem::path &path) {
 				    if (primitive.material >= 0) {
 					    const auto &mat =
 					        gltf_scene.materials[primitive.material];
+						
+						p.mat.name = mat.name;
 
 					    // color factor
 					    auto &bcf = mat.pbrMetallicRoughness.baseColorFactor;
@@ -345,4 +347,21 @@ void model::draw_parts(uniform_buffer &ubo) {
 		glDrawArrays(GL_TRIANGLES, 0, m.num_verts);
 	}
 	glEnable(GL_CULL_FACE);
+}
+
+void model::set_material_color(const std::string& name, const glm::vec4& color) {
+	for (auto& part : parts) {
+		if (part.mat.name == name) {
+			part.mat.color = color;
+		}
+	}
+}
+
+void model::set_material_texture(const std::string& name, const std::filesystem::path& path) {
+	for (auto& part : parts) {
+		if (part.mat.name == name) {
+			part.mat.color_tex.emplace();
+			part.mat.color_tex.value().load_from_file(path, true);
+		}
+	}
 }

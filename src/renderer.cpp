@@ -6,6 +6,7 @@ renderer::renderer() {
     water.compile_from_files("assets/shaders/water.vert", "assets/shaders/water.frag");
     sky.compile_from_files("assets/shaders/sky.vert", "assets/shaders/sky.frag");
     depth.compile_from_files("assets/shaders/depth.vert", "assets/shaders/depth.frag");
+    ssao.compile_from_files("assets/shaders/ssao.vert", "assets/shaders/ssao.frag");
     tonemap.compile_from_files("assets/shaders/tonemap.vert", "assets/shaders/tonemap.frag");
 
     sky_tex.load_hdr_equirect("assets/sky.hdr", &sun_dir);
@@ -19,6 +20,9 @@ renderer::renderer() {
     opaque_fb = framebuffer(1, 1);
     opaque_fb.add_color_attachment(GL_RGBA16F, GL_RGBA, GL_FLOAT);
     opaque_fb.add_depth_attachment();
+    
+    ssao_fb = framebuffer(1, 1);
+    ssao_fb.add_color_attachment(GL_RGBA16F, GL_RGBA, GL_FLOAT);
     
     water_fb = framebuffer(1, 1);
     water_fb.add_color_attachment(GL_RGBA16F, GL_RGBA, GL_FLOAT);
@@ -35,20 +39,23 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
     glm::mat4 V = cam.calc_view_mat();
     glm::mat4 P = cam.calc_proj_mat();
 
+    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(env_yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::vec3 rotated_sun_dir = glm::vec3(rot * glm::vec4(sun_dir, 0.0f));
+
     // Sun's view-projection. Orthographic box centered at origin covers the
     // boat; lighthouse is outside but doesn't need to cast shadows. Placed far
     // enough back along sun_dir to fit the full vertical extent of the scene.
-    glm::vec3 lightPos = sun_dir * 30.0f;
+    glm::vec3 lightPos = rotated_sun_dir * 30.0f;
     glm::mat4 lightV = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightP = glm::ortho(-8.0f, 8.0f, -8.0f, 8.0f, 0.1f, 60.0f);
     glm::mat4 lightVP = lightP * lightV;
 
-    // Frame UBO std140: mat4 V, mat4 P, float time, [12B pad], vec4 sunDir, vec4 sunColor, mat4 lightVP
+    // Frame UBO std140: mat4 V, mat4 P, vec4 time_envYaw, vec4 sunDir, vec4 sunColor, mat4 lightVP
     // sunColor is a warm white with magnitude ~10 (in linear HDR units) — handled by tonemap.
     ubo_frame.update(
-        V, P, (float)glfwGetTime(),
-        glm::vec3(0.0f),
-        glm::vec4(sun_dir, 0.0f),
+        V, P, 
+        glm::vec4((float)glfwGetTime(), glm::radians(env_yaw), 0.0f, 0.0f),
+        glm::vec4(rotated_sun_dir, 0.0f),
         glm::vec4(10.0f, 9.0f, 8.0f, 1.0f) * 0.5f,
         lightVP
     );
@@ -73,6 +80,7 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
     int w = prev_viewport[2];
     int h = prev_viewport[3];
     opaque_fb.resize(w, h);
+    ssao_fb.resize(w, h);
     water_fb.resize(w, h);
 
     // --- Main Opaque Pass (to opaque_fb) ---
@@ -104,9 +112,24 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     draw_recursive(root, V, P, tint);
 
+    // --- SSAO Pass (to ssao_fb) ---
+    ssao_fb.bind();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    ssao.bind();
+    opaque_fb.bind_color_texture(0);
+    opaque_fb.bind_depth_texture(1);
+    
+    glBindVertexArray(empty_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+
     // --- Prepare Aux FBO for Water Pass ---
-    opaque_fb.blit_to(water_fb.get_fbo(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    water_fb.bind(); // Need to draw water into water_fb so water shader can sample opaque_fb while overwriting pixels in water_fb.
+    ssao_fb.blit_to(water_fb.get_fbo(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    opaque_fb.blit_to(water_fb.get_fbo(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    water_fb.bind(); // Need to draw water into water_fb so water shader can sample ssao_fb while overwriting pixels in water_fb.
 
     // Draw water (samples HDR sky for reflection and opaque tex for refraction).
     // Water mesh is single-sided in winding but visually double-sided — back
@@ -118,7 +141,7 @@ void renderer::draw(const std::shared_ptr<entity>& root) {
 
     water.bind();
     sky_tex.bind(0);
-    opaque_fb.bind_color_texture(1);
+    ssao_fb.bind_color_texture(1);
     opaque_fb.bind_depth_texture(2);
 
     glBindVertexArray(empty_vao);

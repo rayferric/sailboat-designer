@@ -8,7 +8,10 @@ layout(location = 0) out vec4 out_Color;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
-    float time;
+	vec4 timeAndYaw;
+	vec4 sunDir;
+	vec4 sunColor;
+	mat4 lightVP;
 } u_Frame;
 
 layout(binding = 0) uniform sampler2D tex_Sky;
@@ -26,8 +29,13 @@ vec2 sample_equirect(vec3 v) {
     return uv;
 }
 
-vec3 sample_sky(vec3 dir) {
-    return texture(tex_Sky, sample_equirect(normalize(dir))).rgb;
+vec3 sample_sky(vec3 dir, float roughness) {
+	float envYaw = u_Frame.timeAndYaw.y;
+	float c = cos(envYaw);
+	float s = sin(envYaw);
+	vec3 samplingDir = mat3(c, 0, s, 0, 1, 0, -s, 0, c) * dir;
+	float max_lod = float(textureQueryLevels(tex_Sky) - 1);
+    return textureLod(tex_Sky, sample_equirect(normalize(samplingDir)), roughness * max_lod).rgb;
 }
 
 vec3 calculateSSR(vec3 viewPos, vec3 viewNormal, vec3 viewIncident, out bool hit, out float fade) {
@@ -35,7 +43,7 @@ vec3 calculateSSR(vec3 viewPos, vec3 viewNormal, vec3 viewIncident, out bool hit
     RayMarchResult rm = rayMarch(
         tex_Depth,
         u_Frame.projMat,
-        u_Frame.time,
+        u_Frame.timeAndYaw.x,
         viewPos,
         reflectDir,
         200.0, // rayLength
@@ -69,7 +77,7 @@ void main() {
     vec3 viewDir = normalize(camPos - v_WorldPos);
     vec3 normal = normalize(v_Normal);
 
-    vec3 lightDir = normalize(vec3(0.6, 0.8, -0.4));
+    vec3 lightDir = normalize(u_Frame.sunDir.xyz);
 
     // Get water depth using depth buffer
     vec2 screenSize = vec2(textureSize(tex_Depth, 0));
@@ -113,7 +121,7 @@ void main() {
     vec3 reflectionColor = calculateSSR(viewPos, viewNormal, viewIncident, ssrHit, ssrFade);
     
     vec3 reflectionDir = reflect(-viewDir, normal);
-    vec3 skyReflection = sample_sky(reflectionDir);
+    vec3 skyReflection = sample_sky(reflectionDir, 0.0);
 
     if (ssrHit) {
         reflectionColor = mix(skyReflection, reflectionColor, ssrFade);
@@ -147,7 +155,7 @@ void main() {
     float dist = length(camPos - v_WorldPos);
     float fade = clamp((dist - 30.0) / 150.0, 0.0, 1.0);
     vec3 skyDir = normalize(v_WorldPos - camPos);
-    vec3 skyAtPixel = sample_sky(skyDir);
+    vec3 skyAtPixel = sample_sky(skyDir, 0.0);
     finalColor = mix(finalColor, skyAtPixel, fade);
 
     // Output with proper alpha blending

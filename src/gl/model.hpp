@@ -28,6 +28,7 @@ public:
 };
 
 struct material {
+	std::string name;
 	glm::vec4 color;
 	float metallic    = 0.0f;
 	float roughness   = 0.5f;
@@ -44,6 +45,8 @@ class model {
 public:
 	void load_from_glb(const std::filesystem::path &path);
 	void draw_parts(uniform_buffer &ubo);
+	void set_material_color(const std::string& name, const glm::vec4& color);
+	void set_material_texture(const std::string& name, const std::filesystem::path& path);
 
 private:
 	std::vector<part> parts;

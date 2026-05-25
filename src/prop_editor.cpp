@@ -16,6 +16,15 @@ void prop_editor::register_prop_type(const std::string& name, const std::filesys
     register_prop_type(name, model_asset, collider_asset);
 }
 
+void prop_editor::clear_all_props() {
+    for (auto& p : placed_props) {
+        if (auto parent = p->parent.lock()) {
+            parent->remove_child(p);
+        }
+    }
+    placed_props.clear();
+}
+
 void prop_editor::abort_current_operation(const std::shared_ptr<entity>& root) {
     if (current_mode == mode::placing && active_placement_prop) {
         root->remove_child(active_placement_prop);
@@ -59,8 +68,8 @@ bool prop_editor::update(const window& win, const fps_camera& cam, const raycast
 }
 
 void prop_editor::renderGUI(const std::shared_ptr<entity>& root) {
-    ImGui::SetNextWindowPos(ImVec2(0, 110), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0, 300), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 300), ImGuiCond_FirstUseEver);
     ImGui::Begin("Prop Tools");
 
     ImGui::Text("Current Tool: %s", 
@@ -73,6 +82,7 @@ void prop_editor::renderGUI(const std::shared_ptr<entity>& root) {
         if (ImGui::Button(("Place " + def.name).c_str(), ImVec2(-1, 30))) {
             abort_current_operation(root);
             current_mode = mode::placing;
+            placement_yaw = 0.0f;
             
             active_placement_prop = std::make_shared<entity>();
             active_placement_prop->model_asset = def.model_asset;
@@ -98,9 +108,14 @@ void prop_editor::renderGUI(const std::shared_ptr<entity>& root) {
 void prop_editor::handleModePlacing(const window& win, const fps_camera& cam, const raycaster& rc, 
                          const std::shared_ptr<entity>& root, const std::shared_ptr<entity>& target_hierarchy, 
                          bool ui_hovered) {
-    active_placement_prop->tint = std::make_shared<glm::vec4>(0.0f, 1.0f, 0.0f, 0.5f);; // Green ghost
+    active_placement_prop->tint = std::make_shared<glm::vec4>(0.0f, 1.0f, 0.0f, 0.5f); // Green ghost
         
     if(ui_hovered) return;
+
+    float scroll = ImGui::GetIO().MouseWheel;
+    if (scroll != 0.0f) {
+        placement_yaw += scroll * 15.0f; // 15 degrees per scroll tick
+    }
 
     ray r = rc.gen_mouse_cursor_ray(win, cam);
     hit_result hit = rc.cast_ray(target_hierarchy, r, active_placement_prop.get());
@@ -116,7 +131,9 @@ void prop_editor::handleModePlacing(const window& win, const fps_camera& cam, co
     if (std::abs(glm::dot(y_axis, fallback)) > 0.999f) fallback = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 z_axis = glm::normalize(glm::cross(fallback, y_axis));
     glm::vec3 x_axis = glm::normalize(glm::cross(y_axis, z_axis));
-    active_placement_prop->rotation = glm::quat_cast(glm::mat3(x_axis, y_axis, z_axis));
+    glm::quat look_at_rot = glm::quat_cast(glm::mat3(x_axis, y_axis, z_axis));
+    glm::quat yaw_rot = glm::angleAxis(glm::radians(placement_yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+    active_placement_prop->rotation = look_at_rot * yaw_rot;
     
     if(!lmb_just_released) return;
 

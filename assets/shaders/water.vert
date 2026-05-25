@@ -6,7 +6,10 @@ layout(location = 1) out vec3 v_Normal;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
-    float time;
+	vec4 timeAndYaw;
+	vec4 sunDir;
+	vec4 sunColor;
+	mat4 lightVP;
 } u_Frame;
 
 const int GRID_SIZE = 800;
@@ -60,7 +63,7 @@ void main() {
         
         float k = 2.0 * 3.14159 * freq;
         float c = sqrt(9.8 / k);
-        float dt = k * dot(dir, world_xz) - c * (u_Frame.time * 10.0) * speed;
+        float dt = k * dot(dir, world_xz) - c * (u_Frame.timeAndYaw.x * 10.0) * speed;
         float a = steepness_per_wave / k;
         
         float wa = k * a;

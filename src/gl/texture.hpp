@@ -11,6 +11,7 @@ public:
 	}
 
 	void load(const void *data, int width, int height, GLenum format = GL_RGBA, bool srgb = false);
+	void load_from_file(const std::filesystem::path &path, bool srgb = true);
 	void load_hdr_equirect(
 	    const std::filesystem::path &path,
 	    glm::vec3 *out_brightest_dir = nullptr

@@ -13,10 +13,10 @@ layout(location = 2) in vec3 v_WorldPos;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
-	float time;
-	vec4 sunDir;    // w = 0 (direction, not position)
-	vec4 sunColor;  // w = 1 (rgb = linear HDR radiance)
-	mat4 lightVP;   // sun's view-projection for shadow mapping
+	vec4 timeAndYaw; // x: time, y: envYaw
+	vec4 sunDir;     // w = 0 (direction, not position)
+	vec4 sunColor;   // w = 1 (rgb = linear HDR radiance)
+	mat4 lightVP;    // sun's view-projection for shadow mapping
 } u_Frame;
 
 layout(std140, binding = 1) uniform Entity {
@@ -43,8 +43,13 @@ vec2 equirect_uv(vec3 v) {
 	return uv;
 }
 
-vec3 sample_sky(vec3 dir) {
-	return texture(tex_Sky, equirect_uv(normalize(dir))).rgb;
+vec3 sample_sky(vec3 dir, float roughness) {
+	float envYaw = u_Frame.timeAndYaw.y;
+	float c = cos(envYaw);
+	float s = sin(envYaw);
+	vec3 samplingDir = mat3(c, 0, s, 0, 1, 0, -s, 0, c) * dir;
+	float max_lod = float(textureQueryLevels(tex_Sky) - 1);
+	return textureLod(tex_Sky, equirect_uv(normalize(samplingDir)), roughness * max_lod).rgb;
 }
 
 // GGX normal distribution
@@ -95,12 +100,16 @@ float compute_shadow(vec3 worldPos, float NdotL) {
 
 void main() {
 	// Material
-	vec3 albedo    = (u_Material.color * texture(tex_Color, v_TexCoord)).rgb;
+	vec4 tex_color = texture(tex_Color, v_TexCoord);
+	if (tex_color.a < 0.01) {
+		discard;
+	}
+	vec3 albedo    = (u_Material.color * tex_color).rgb;
 	albedo         = mix(albedo, u_Entity.tint.rgb, u_Entity.tint.a);
 	float metallic = u_Material.pbr.x;
 	// Floor raised to make hull/sail materials read as matte rather than
 	// plasticky — most glTF assets here ship with low roughness factors.
-	float rough    = max(u_Material.pbr.y, 0.6);
+	float rough    = max(u_Material.pbr.y, 0.0);
 
 	// Camera position from view matrix
 	mat3 Rv = mat3(u_Frame.viewMat);
@@ -111,6 +120,9 @@ void main() {
 	vec3 L = normalize(u_Frame.sunDir.xyz);
 	vec3 H = normalize(V + L);
 	vec3 R = reflect(-V, N);
+
+	// // debug: set albedo to view space normal
+	// albedo = mat3(u_Frame.viewMat) * N;
 
 	float NdotL = max(dot(N, L), 0.0);
 	float NdotV = max(dot(N, V), 1e-4);
@@ -136,12 +148,11 @@ void main() {
 	// Diffuse: sky radiance in normal direction as irradiance approximation.
 	vec3 F_env = F_Schlick(NdotV, F0);
 	vec3 kd_env = (1.0 - F_env) * (1.0 - metallic);
-	vec3 diffuse_env = kd_env * albedo * sample_sky(N);
+	vec3 diffuse_env = kd_env * albedo * sample_sky(N, 1.0);
 
-	// Specular: sky in reflection direction. Rougher surfaces blend toward
-	// diffuse direction (cheap substitute for prefiltered mip levels).
-	vec3 R_rough = mix(R, N, rough * rough);
-	vec3 specular_env = F_env * sample_sky(R_rough);
+	// Specular: sky in reflection direction. LOD handles the blurring
+	// based on the roughness of the surface.
+	vec3 specular_env = F_env * sample_sky(R, rough);
 
 	// Cheap fake AO: surfaces facing down get less sky ambient than ones facing
 	// up. Approximates the fact that geometry below typically blocks the sky.
@@ -161,5 +172,5 @@ void main() {
 	// 	finalColor = mix(finalColor, deepWaterColor, fog);
 	// }
 
-	out_Color = vec4(finalColor, 1.0);
+	out_Color = vec4(finalColor, tex_color.a);
 }

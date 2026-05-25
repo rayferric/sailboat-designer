@@ -5,7 +5,7 @@ layout(location = 0) in vec3 in_Position;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
-	float time;
+	vec4 timeAndYaw;
 	vec4 sunDir;
 	vec4 sunColor;
 	mat4 lightVP;

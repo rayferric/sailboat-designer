@@ -115,6 +115,8 @@ void shader::compile(const std::string &vert_src, const std::string &frag_src, c
 
 	check_program_link(prog_id, p_name);
 
+	std::cout << "Compiled shader '" << shader_name_for_errors << "' with program ID " << prog_id << std::endl;
+
 	glDeleteShader(f_id);
 	glDeleteShader(v_id);
 }

@@ -12,6 +12,7 @@
 class renderer {
 public:
     fps_camera cam;
+    float env_yaw = 0.0f;
 
     renderer();
     
@@ -22,6 +23,7 @@ private:
     shader water;
     shader sky;
     shader depth;
+    shader ssao;
     shader tonemap;
     texture sky_tex;
     glm::vec3 sun_dir;
@@ -35,6 +37,7 @@ private:
     static constexpr int shadow_size = 4096;
 
     framebuffer opaque_fb;
+    framebuffer ssao_fb;
     framebuffer water_fb;
 
     void draw_recursive(const std::shared_ptr<entity>& current, const glm::mat4& V, const glm::mat4& P, glm::vec4 tint);

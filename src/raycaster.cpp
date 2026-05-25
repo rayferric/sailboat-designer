@@ -87,8 +87,9 @@ void raycaster::cast_recursive(const std::shared_ptr<entity>& current, const ray
 
         if (intersect_aabb(current->collider_asset->aabb_min, current->collider_asset->aabb_max, local_ray)) {
             const auto& tris = current->collider_asset->triangles;
-            for (size_t i = 0; i < tris.size(); i += 3) {
-                hit_result hit = intersect_triangle(local_ray, tris[i], tris[i+1], tris[i+2]);
+            const auto& bvh = current->collider_asset->bvh_nodes;
+
+            auto process_hit = [&](const hit_result& hit) {
                 if (hit.distance >= 0.0f) {
                     glm::vec3 world_point = glm::vec3(current->get_world_matrix() * glm::vec4(hit.point, 1.0f));
                     float world_dist = glm::length(world_point - world_ray.origin);
@@ -101,6 +102,42 @@ void raycaster::cast_recursive(const std::shared_ptr<entity>& current, const ray
                         glm::mat3 normal_mat = glm::transpose(glm::mat3(inv_world));
                         closest_hit.normal = glm::normalize(normal_mat * hit.normal);
                     }
+                }
+            };
+
+            if (!bvh.empty()) {
+                uint32_t stack[64];
+                int stack_ptr = 0;
+                stack[stack_ptr++] = 0;
+
+                while (stack_ptr > 0) {
+                    uint32_t node_idx = stack[--stack_ptr];
+                    const auto& node = bvh[node_idx];
+
+                    if (!intersect_aabb(node.aabb_min, node.aabb_max, local_ray)) {
+                        continue;
+                    }
+
+                    bool is_leaf = (node.left_idx_or_tri_begin & 0x80000000) != 0;
+
+                    if (is_leaf) {
+                        uint32_t tri_begin = node.left_idx_or_tri_begin & 0x7FFFFFFF;
+                        uint32_t tri_count = node.right_idx_or_tri_count;
+
+                        for (uint32_t i = 0; i < tri_count; i++) {
+                            uint32_t tri_idx = (tri_begin + i) * 3;
+                            hit_result hit = intersect_triangle(local_ray, tris[tri_idx], tris[tri_idx+1], tris[tri_idx+2]);
+                            process_hit(hit);
+                        }
+                    } else {
+                        stack[stack_ptr++] = node.left_idx_or_tri_begin;
+                        stack[stack_ptr++] = node.right_idx_or_tri_count;
+                    }
+                }
+            } else {
+                for (size_t i = 0; i < tris.size(); i += 3) {
+                    hit_result hit = intersect_triangle(local_ray, tris[i], tris[i+1], tris[i+2]);
+                    process_hit(hit);
                 }
             }
         }

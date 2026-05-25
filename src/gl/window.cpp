@@ -23,8 +23,14 @@ void GLAPIENTRY opengl_error_callback(
     GLsizei length,
     const GLchar *message,
     const void *userParam) {
-	printf("[Source: %d][Type: %d][Severity: %d][Id: %d]: %s\n", source, type, severity, id, message);
-}
+		GLuint ignore_ids[] = { 131185, 131218 };
+		for (auto ignore_id : ignore_ids) {
+			if (id == ignore_id) {
+				return;
+			}
+		}
+		printf("[Source: %d][Type: %d][Severity: %d][Id: %d]: %s\n", source, type, severity, id, message);
+	}
 
 window::window() {
 	glfwInit();

@@ -19,6 +19,8 @@ public:
 
     void register_prop_type(const std::string& name, const std::filesystem::path& path);
 
+    void clear_all_props();
+
     // Draws the ImGui tools and processes input mode logic.
     // Returns 'true' if the user is actively placing or removing a prop,
     // which signals to main.cpp that the camera should not capture the mouse.
@@ -50,6 +52,7 @@ private:
 
     std::shared_ptr<entity> active_placement_prop = nullptr;
     std::shared_ptr<entity> hovered_prop = nullptr;
+    float placement_yaw = 0.0f;
 
     void abort_current_operation(const std::shared_ptr<entity>& root);
 };

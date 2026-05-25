@@ -12,7 +12,7 @@ layout(location = 2) out vec3 v_WorldPos;
 layout(std140, binding = 0) uniform Frame {
 	mat4 viewMat;
 	mat4 projMat;
-	float time;
+	vec4 timeAndYaw;
 	vec4 sunDir;
 	vec4 sunColor;
 	mat4 lightVP;

@@ -44,6 +44,22 @@ void texture::load(const void *data, int w, int h, GLenum format, bool srgb) {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(max_aniso, 16.0f));
 }
 
+void texture::load_from_file(const std::filesystem::path &path, bool srgb) {
+	stbi_set_flip_vertically_on_load(true);
+	int w, h, n;
+	unsigned char *data = stbi_load(path.string().c_str(), &w, &h, &n, 4);
+	stbi_set_flip_vertically_on_load(false);
+
+	if (!data) {
+		throw std::runtime_error("failed to load texture: " + path.string());
+	}
+
+	load(data, w, h, GL_RGBA, srgb);
+	stbi_image_free(data);
+}
+
+#include "./hdri_lods.hpp"
+
 void texture::load_hdr_equirect(const std::filesystem::path &path, glm::vec3 *out_brightest_dir) {
 	stbi_set_flip_vertically_on_load(true);
 	int w, h, n;
@@ -53,11 +69,25 @@ void texture::load_hdr_equirect(const std::filesystem::path &path, glm::vec3 *ou
 	if (!data) {
 		throw std::runtime_error("failed to load HDR: " + path.string());
 	}
+	
+	// clamp to max brightness
+	for (int i = 0; i < w * h * 3; ++i) {
+		data[i] = std::min(data[i], 100.0f);
+	}
 
 	glBindTexture(GL_TEXTURE_2D, tex_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, w, h, 0, GL_RGB, GL_FLOAT, data);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	int max_lods = ((int)std::floor(std::log2(std::max(w, h))) + 1) / 2;
+	
+	// ensure the texture has storage allocated for all levels
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, max_lods - 1);
+	glGenerateMipmap(GL_TEXTURE_2D); // allocates memory and populates LOD0
+
+	// call the helper
+	generate_spherical_mips(tex_id, w, h, max_lods);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

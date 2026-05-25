@@ -6,6 +6,7 @@ add_subdirectory("vendor/glad")
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")
 add_subdirectory("vendor/imgui")
+add_subdirectory("vendor/portable-file-dialogs")
 add_subdirectory("vendor/stb")
 add_subdirectory("vendor/tinygltf")
 
@@ -26,7 +27,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	"src"
 )
 target_link_libraries(${PROJECT_NAME}
-    glad glfw glm imgui stb tinygltf
+    glad glfw glm imgui portable_file_dialogs stb tinygltf
 )
 
 # install assets
