@@ -101,7 +101,7 @@ float compute_shadow(vec3 worldPos, float NdotL) {
 void main() {
 	// Material
 	vec4 tex_color = texture(tex_Color, v_TexCoord);
-	if (tex_color.a < 0.01) {
+	if (tex_color.a < 0.1) {
 		discard;
 	}
 	vec3 albedo    = (u_Material.color * tex_color).rgb;
@@ -172,5 +172,5 @@ void main() {
 	// 	finalColor = mix(finalColor, deepWaterColor, fog);
 	// }
 
-	out_Color = vec4(finalColor, tex_color.a);
+	out_Color = vec4(finalColor, 1.0);
 }
