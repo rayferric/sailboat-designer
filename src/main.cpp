@@ -67,6 +67,8 @@ int main() {
     props.register_prop_type("Test Cube", "assets/models/test_cube.glb");
     props.register_prop_type("Lifebuoy", "assets/models/lifebuoy.glb");
     props.register_prop_type("Ducker", "assets/models/ducker.glb");
+	props.register_prop_type("First Aid Kit", "assets/models/firstaid.glb");
+	props.register_prop_type("Soda Can", "assets/models/can.glb");
 
     float sail_angle = 0.0f;
     float boat_height = 0.0f;
